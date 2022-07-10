@@ -1,0 +1,61 @@
+﻿@page "/"
+@page "/{shortUrl}"
+@using shortid;
+@inject NavigationManager NavManage
+
+<PageTitle>Url Shortner</PageTitle>
+
+<h1 class="text-center text-light mt-4 text-capitalize">url shortner</h1>
+
+<EditForm Model="longerUrl" OnValidSubmit="SaveData" >
+  <div class="mb-3 row">
+    <label for="url"  class="col-sm-2 text-light col-form-label">Long Url</label>
+    <div class="col-sm-10">
+      <InputText @bind-Value="longerUrl.url" class="form-control" id="url"/>
+    </div>
+  </div>
+  <div class="col-auto">
+    <input type="submit" value="Shorten it" class="btn btn-primary mb-3">
+  </div>
+</EditForm>
+
+
+@if(urls !=null)
+{
+    <UrlTable Urls="urls"/>
+}else{
+    <p class="text-white">loading...</p>
+}
+
+
+@code{
+    [Parameter]
+    public string? shortUrl {get;set;}
+    public InputUrl longerUrl { get; set; } = new InputUrl();
+    public IEnumerable<UrlModel>? urls{get;set;}
+    protected override async Task OnInitializedAsync()
+    {
+        urls= await DataAccess.GetAllAsync();
+    }
+    public async Task SaveData()
+    {
+       DataAccess.InsertRecord(new UrlModel{Short=ShortId.Generate(),Long=longerUrl.url});
+       urls= await DataAccess.GetAllAsync();
+       longerUrl.url="";
+    }
+    protected override async Task OnParametersSetAsync()
+    {
+        if (shortUrl != null){
+            string res= await DataAccess.GetByShort(shortUrl);
+            if(!res.StartsWith("https://"))
+            {
+                res="https://"+res;
+            }
+            NavManage.NavigateTo(res);
+        }
+    }
+}
+
+
+
+

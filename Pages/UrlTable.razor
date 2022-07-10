@@ -1,0 +1,39 @@
+@inject UrlStateContainer container;
+
+@if(Urls?.Count() != 0)
+{
+    <table class="table table-dark table-striped">
+    <thead>
+        <tr>
+            <td class="text-capitalize fs-3">long url</td>
+            <td class="text-capitalize fs-3">short url</td>
+            <td class="text-capitalize fs-3">delete</td>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Urls)
+        {
+            <tr>
+                <td class="text-truncate">@item.Long</td> 
+                <td><a href="@item.Short" target="_blank">/@item.Short</a></td>
+                <td><button class="btn btn-outline-primary" 
+                @onclick="async ()=> {await DeleteRecord(item.Short);}">Delete</button></td>
+            </tr>
+        }
+    </tbody>
+</table>
+}else{
+    <h2 class="text-white">no links yet, try to shorten some :)</h2>
+}
+
+@code{
+    [Parameter]
+    public IEnumerable<UrlModel>? Urls{get;set;}
+
+    private async Task DeleteRecord(string shortUrl)
+    {
+        await DataAccess.DeleteRecord(shortUrl);
+        Urls= await DataAccess.GetAllAsync();
+    }
+
+}
